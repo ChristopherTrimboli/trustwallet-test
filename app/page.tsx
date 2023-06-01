@@ -20,7 +20,7 @@ export default function Home() {
     return balanceInEth;
   }, [])
 
-  const createWallet = async (e: FormEvent<HTMLFormElement>) => {
+  const createWallet = useCallback(async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const wallet = ethers.Wallet.createRandom()
     console.log('new wallet', wallet)
@@ -34,9 +34,9 @@ export default function Home() {
     setPassword('')
     localStorage.setItem('localWallet', jsonWallet)
     console.log(wallet)
-  }
+  }, [password])
 
-  const handleUnlock = async (e: FormEvent<HTMLFormElement>) => {
+  const handleUnlock = useCallback(async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!localWallet) return console.log('no local wallet')
 
@@ -52,14 +52,14 @@ export default function Home() {
         console.log('error unlocking wallet', e)
         setError('Wrong password')
       })
-  }
+  }, [localWallet, password, getBalance])
 
-  const deleteWallet = () => {
+  const deleteWallet = useCallback(() => {
     localStorage.removeItem('localWallet')
     setLocalWallet('')
     setWallet(null)
     setIsUnlocked(false)
-  }
+  }, [])
 
   const logout = () => {
     setLocalWallet('')
@@ -105,6 +105,7 @@ export default function Home() {
                     localWallet && !isUnlocked && (
                       <form onSubmit={handleUnlock}>
                         <h1>Unlock your wallet</h1>
+                        <p>Password:</p>
                         <input type="password" onChange={({ target }) => setPassword(target.value)} />
                         <button type='submit' disabled={!password}>Unlock</button>
                         {error && <p style={{ color: 'red' }}>{error}</p>}
@@ -114,6 +115,7 @@ export default function Home() {
                   {!localWallet && (
                     <form onSubmit={createWallet}>
                       <h1>Create Wallet</h1>
+                      <p>Password:</p>
                       <input type="password" onChange={({ target }) => setPassword(target.value)} />
                       <button type="submit" disabled={!password}>Create wallet</button>
                     </form>
