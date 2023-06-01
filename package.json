@@ -20,7 +20,6 @@
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "typescript": "5.0.4",
-    "utf-8-validate": "^5.0.10",
-    "wagmi": "^1.0.9"
+    "utf-8-validate": "^5.0.10"
   }
 }
