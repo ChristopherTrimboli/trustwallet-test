@@ -61,7 +61,6 @@ export default function Home() {
   }, [])
 
   const logout = useCallback(() => {
-    setLocalWallet('')
     setWallet(null)
     setIsUnlocked(false)
   }, [])
