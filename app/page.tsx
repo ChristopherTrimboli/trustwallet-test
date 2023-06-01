@@ -36,7 +36,7 @@ export default function Home() {
     console.log(wallet)
   }, [password])
 
-  const handleUnlock = useCallback(async (e: FormEvent<HTMLFormElement>) => {
+  const unlockWallet = useCallback(async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!localWallet) return console.log('no local wallet')
 
@@ -61,11 +61,11 @@ export default function Home() {
     setIsUnlocked(false)
   }, [])
 
-  const logout = () => {
+  const logout = useCallback(() => {
     setLocalWallet('')
     setWallet(null)
     setIsUnlocked(false)
-  }
+  }, [])
 
   useEffect(() => {
     setLoading(true)
@@ -103,7 +103,7 @@ export default function Home() {
                 <>
                   {
                     localWallet && !isUnlocked && (
-                      <form onSubmit={handleUnlock}>
+                      <form onSubmit={unlockWallet}>
                         <h1>Unlock your wallet</h1>
                         <p>Password:</p>
                         <input type="password" onChange={({ target }) => setPassword(target.value)} />
