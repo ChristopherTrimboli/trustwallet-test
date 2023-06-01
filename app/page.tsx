@@ -33,7 +33,6 @@ export default function Home() {
     setWallet(wallet)
     setPassword('')
     localStorage.setItem('localWallet', jsonWallet)
-    console.log(wallet)
   }, [password])
 
   const unlockWallet = useCallback(async (e: FormEvent<HTMLFormElement>) => {
