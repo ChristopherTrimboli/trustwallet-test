@@ -1,15 +1,16 @@
 "use client"
 
-import { useCallback, useEffect, useState } from 'react'
+import { FormEvent, useCallback, useEffect, useState } from 'react'
 import { Wallet, ethers } from 'ethers'
 
 export default function Home() {
   const [wallet, setWallet] = useState<ethers.HDNodeWallet | Wallet | null>(null)
-  const [localWallet, setLocalWallet] = useState<string | null>('')
+  const [localWallet, setLocalWallet] = useState('')
   const [isUnlocked, setIsUnlocked] = useState(false)
   const [password, setPassword] = useState('')
   const [balance, setBalance] = useState('')
   const [isLoading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   const getBalance = useCallback(async (address: string) => {
     const provider = new ethers.BrowserProvider((window as any).ethereum)
@@ -19,7 +20,8 @@ export default function Home() {
     return balanceInEth;
   }, [])
 
-  const createWallet = async () => {
+  const createWallet = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     const wallet = ethers.Wallet.createRandom()
     console.log('new wallet', wallet)
 
@@ -34,18 +36,35 @@ export default function Home() {
     console.log(wallet)
   }
 
-  const handleUnlock = async () => {
+  const handleUnlock = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     if (!localWallet) return console.log('no local wallet')
 
-    const wallet = await ethers.Wallet.fromEncryptedJson(localWallet, password)
-    if (!wallet) return console.log('issue decrypting wallet from local wallet')
+    ethers.Wallet.fromEncryptedJson(localWallet, password)
+      .then(async (wallet) => {
+        console.log('unlocked wallet', wallet)
+        setBalance(await getBalance(wallet.address))
+        setWallet(wallet)
+        setIsUnlocked(true)
+        setPassword('')
+      })
+      .catch(e => {
+        console.log('error unlocking wallet', e)
+        setError('Wrong password')
+      })
+  }
 
-    console.log('unlocked wallet', wallet)
+  const deleteWallet = () => {
+    localStorage.removeItem('localWallet')
+    setLocalWallet('')
+    setWallet(null)
+    setIsUnlocked(false)
+  }
 
-    setBalance(await getBalance(wallet.address))
-    setWallet(wallet)
-    setIsUnlocked(true)
-    setPassword('')
+  const logout = () => {
+    setLocalWallet('')
+    setWallet(null)
+    setIsUnlocked(false)
   }
 
   useEffect(() => {
@@ -54,7 +73,7 @@ export default function Home() {
     if (localWallet) {
       setLocalWallet(localWallet)
     } else {
-      setLocalWallet(null)
+      setLocalWallet('')
       console.log('no local wallet');
     }
     setLoading(false)
@@ -66,9 +85,14 @@ export default function Home() {
         wallet ? (
           <>
             <h1>Your Wallet</h1>
-            <p>Address: {wallet.address}</p>
-            <p>Balance: {balance} ETH</p>
-            <p>Private Key: {wallet.privateKey}</p>
+            <h5>Address:</h5>
+            <p>{wallet.address}</p>
+            <h5>Balance:</h5>
+            <p> {balance} ETH</p>
+            <h5>Private Key:</h5>
+            <p>{wallet.privateKey}</p>
+            <button onClick={deleteWallet}>Delete this wallet from browser</button>
+            <button onClick={logout}>Logout / lock wallet</button>
           </>
         ) : (
           <>
@@ -79,19 +103,20 @@ export default function Home() {
                 <>
                   {
                     localWallet && !isUnlocked && (
-                      <>
+                      <form onSubmit={handleUnlock}>
                         <h1>Unlock your wallet</h1>
                         <input type="password" onChange={({ target }) => setPassword(target.value)} />
-                        <button onClick={handleUnlock} disabled={!password}>Unlock</button>
-                      </>
+                        <button type='submit' disabled={!password}>Unlock</button>
+                        {error && <p style={{ color: 'red' }}>{error}</p>}
+                      </form>
                     )
                   }
                   {!localWallet && (
-                    <>
+                    <form onSubmit={createWallet}>
                       <h1>Create Wallet</h1>
                       <input type="password" onChange={({ target }) => setPassword(target.value)} />
-                      <button onClick={createWallet} disabled={!password}>Create wallet</button>
-                    </>
+                      <button type="submit" disabled={!password}>Create wallet</button>
+                    </form>
                   )
                   }
                 </>
