@@ -76,7 +76,7 @@ export default function Home() {
       console.log('no local wallet');
     }
     setLoading(false)
-  }, [wallet])
+  }, [])
 
   return (
     <main>
